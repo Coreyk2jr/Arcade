@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -47,6 +47,19 @@
             font-size: 2em;
             cursor: pointer;
         }
+        .memory-board {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .memory-board .cell {
+            width: 60px;
+            height: 60px;
+            border: 1px solid #333;
+            font-size: 1.5em;
+        }
     </style>
 </head>
 <body>
@@ -91,95 +104,151 @@
             <button onclick="playRPS('scissors')">Scissors</button>
             <p id="rps-result"></p>
         </div>
+
+        <!-- Memory Match Game -->
+        <div class="game" id="memory-match">
+            <h2>Memory Match</h2>
+            <p>Find the matching pairs:</p>
+            <div class="memory-board">
+                <!-- Memory board will be dynamically created -->
+            </div>
+            <p id="memory-match-message"></p>
+            <button onclick="resetMemoryMatch()">Restart Game</button>
+        </div>
+
+        <!-- Hangman Game -->
+        <div class="game" id="hangman">
+            <h2>Hangman</h2>
+            <p id="hangman-word"></p>
+            <p>Guess a letter:</p>
+            <input type="text" id="hangman-guess" maxlength="1">
+            <button onclick="checkHangmanGuess()">Guess</button>
+            <p id="hangman-message"></p>
+        </div>
+
+        <!-- Math Quiz Game -->
+        <div class="game" id="math-quiz">
+            <h2>Math Quiz</h2>
+            <p id="math-question"></p>
+            <input type="number" id="math-answer">
+            <button onclick="checkMathAnswer()">Submit</button>
+            <p id="math-quiz-message"></p>
+        </div>
     </main>
 
     <script>
-    // Tic-Tac-Toe
-let board = ['', '', '', '', '', '', '', '', ''];
-let currentPlayer = 'X';
-let gameActive = true;
+        // Tic-Tac-Toe
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X';
+        let gameActive = true;
 
-const winConditions = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8],
-    [0, 3, 6], [1, 4, 7], [2, 5, 8],
-    [0, 4, 8], [2, 4, 6]
-];
+        const winConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
 
-function makeAIMove() {
-    // Implement AI algorithm here using a random move
-    let emptyCells = [];
-    for (let i = 0; i < board.length; i++) {
-        if (board[i] === '') {
-            emptyCells.push(i);
+        function makeAIMove() {
+            // Implement AI algorithm here
+            // Improved AI logic for harder difficulty
+            let emptyCells = [];
+            for (let i = 0; i < board.length; i++) {
+                if (board[i] === '') {
+                    emptyCells.push(i);
+                }
+            }
+
+            // Prioritize winning or blocking moves
+            for (let i = 0; i < winConditions.length; i++) {
+                const [a, b, c] = winConditions[i];
+                if (board[a] === 'O' && board[b] === 'O' && board[c] === '') {
+                    return makeMove(c);
+                }
+                if (board[a] === 'O' && board[c] === 'O' && board[b] === '') {
+                    return makeMove(b);
+                }
+                if (board[b] === 'O' && board[c] === 'O' && board[a] === '') {
+                    return makeMove(a);
+                }
+                if (board[a] === 'X' && board[b] === 'X' && board[c] === '') {
+                    return makeMove(c);
+                }
+                if (board[a] === 'X' && board[c] === 'X' && board[b] === '') {
+                    return makeMove(b);
+                }
+                if (board[b] === 'X' && board[c] === 'X' && board[a] === '') {
+                    return makeMove(a);
+                }
+            }
+
+            // Otherwise, make a random move
+            if (emptyCells.length > 0) {
+                const randomIndex = Math.floor(Math.random() * emptyCells.length);
+                const index = emptyCells[randomIndex];
+                setTimeout(() => {
+                    makeMove(index);
+                }, 500); // Delay for a more natural feel
+            }
         }
-    }
-    if (emptyCells.length > 0) {
-        const randomIndex = Math.floor(Math.random() * emptyCells.length);
-        const index = emptyCells[randomIndex];
-        setTimeout(() => {
-            makeMove(index);
-        }, 500); // Delay for a more natural feel
-    }
-}
 
-// Modify the makeMove function to call makeAIMove when it's AI's turn
-function makeMove(index) {
-    if (board[index] === '' && gameActive) {
-        board[index] = currentPlayer;
-        document.querySelectorAll('.cell')[index].innerText = currentPlayer;
-        checkWin();
-        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-        if (currentPlayer === 'O' && gameActive) {
-            makeAIMove(); // Call makeAIMove for AI's turn
+        function makeMove(index) {
+            if (board[index] === '' && gameActive) {
+                board[index] = currentPlayer;
+                document.querySelectorAll('.cell')[index].innerText = currentPlayer;
+                checkWin();
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                if (currentPlayer === 'O' && gameActive) {
+                    makeAIMove(); // Call makeAIMove for AI's turn
+                }
+            }
         }
-    }
-}
 
-function checkWin() {
-    let roundWon = false;
-    for (let i = 0; i < winConditions.length; i++) {
-        const winCondition = winConditions[i];
-        let a = board[winCondition[0]];
-        let b = board[winCondition[1]];
-        let c = board[winCondition[2]];
-        if (a === '' || b === '' || c === '') {
-            continue;
+        function checkWin() {
+            let roundWon = false;
+            for (let i = 0; i < winConditions.length; i++) {
+                const winCondition = winConditions[i];
+                let a = board[winCondition[0]];
+                let b = board[winCondition[1]];
+                let c = board[winCondition[2]];
+                if (a === '' || b === '' || c === '') {
+                    continue;
+                }
+                if (a === b && b === c) {
+                    roundWon = true;
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                document.getElementById('tic-tac-toe-message').innerText = `${currentPlayer} wins!`;
+                gameActive = false;
+            }
+
+            if (!board.includes('')) {
+                document.getElementById('tic-tac-toe-message').innerText = 'Draw!';
+                gameActive = false;
+            }
         }
-        if (a === b && b === c) {
-            roundWon = true;
-            break;
+
+        function resetGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            gameActive = true;
+            document.querySelectorAll('.cell').forEach(cell => cell.innerText = '');
+            document.getElementById('tic-tac-toe-message').innerText = '';
         }
-    }
-
-    if (roundWon) {
-        document.getElementById('tic-tac-toe-message').innerText = `${currentPlayer} wins!`;
-        gameActive = false;
-    }
-
-    if (!board.includes('')) {
-        document.getElementById('tic-tac-toe-message').innerText = 'Draw!';
-        gameActive = false;
-    }
-}
-
-function resetGame() {
-    board = ['', '', '', '', '', '', '', '', ''];
-    currentPlayer = 'X';
-    gameActive = true;
-    document.querySelectorAll('.cell').forEach(cell => cell.innerText = '');
-    document.getElementById('tic-tac-toe-message').innerText = '';
-}
-
 
         // Number Guessing Game
         let targetNumber = Math.floor(Math.random() * 100) + 1;
+        let guessAttempts = 0;
 
         function checkGuess() {
             const guess = parseInt(document.getElementById('guess').value);
             const message = document.getElementById('number-guessing-message');
+            guessAttempts++;
 
             if (guess === targetNumber) {
-                message.innerText = 'Congratulations! You guessed the number!';
+                message.innerText = `Congratulations! You guessed the number in ${guessAttempts} attempts!`;
             } else if (guess > targetNumber) {
                 message.innerText = 'Too high! Try again.';
             } else {
@@ -205,6 +274,139 @@ function resetGame() {
                 result.innerText = `You lose! ${computerMove} beats ${playerMove}.`;
             }
         }
+
+        // Memory Match Game
+        const memoryCards = [
+            'A', 'A', 'B', 'B', 'C', 'C', 'D', 'D',
+            'E', 'E', 'F', 'F', 'G', 'G', 'H', 'H',
+            'I', 'I', 'J', 'J', 'K', 'K', 'L', 'L',
+            'M', 'M', 'N', 'N', 'O', 'O', 'P', 'P',
+            'Q', 'Q', 'R', 'R', 'S', 'S', 'T', 'T',
+            'U', 'U', 'V', 'V', 'W', 'W', 'X', 'X',
+            'Y', 'Y', 'Z', 'Z', '1', '1', '2', '2',
+            '3', '3', '4', '4', '5', '5', '6', '6'
+        ];
+        let memoryBoard = [];
+        let firstCard, secondCard;
+        let lockBoard = false;
+
+        function createMemoryBoard() {
+            const board = document.querySelector('.memory-board');
+            memoryBoard = memoryCards.sort(() => 0.5 - Math.random());
+            board.innerHTML = '';
+            memoryBoard.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('cell');
+                cardElement.dataset.index = index;
+                cardElement.addEventListener('click', flipCard);
+                board.appendChild(cardElement);
+            });
+        }
+
+        function flipCard() {
+            if (lockBoard) return;
+            const card = this;
+            card.innerText = memoryBoard[card.dataset.index];
+
+            if (!firstCard) {
+                firstCard = card;
+                return;
+            }
+
+            secondCard = card;
+            lockBoard = true;
+
+            if (firstCard.innerText === secondCard.innerText) {
+                firstCard = null;
+                secondCard = null;
+                lockBoard = false;
+                checkMemoryMatchWin();
+            } else {
+                setTimeout(() => {
+                    firstCard.innerText = '';
+                    secondCard.innerText = '';
+                    firstCard = null;
+                    secondCard = null;
+                    lockBoard = false;
+                }, 1000);
+            }
+        }
+
+        function checkMemoryMatchWin() {
+            const allFlipped = [...document.querySelectorAll('.cell')].every(cell => cell.innerText !== '');
+            if (allFlipped) {
+                document.getElementById('memory-match-message').innerText = 'You win!';
+            }
+        }
+
+        function resetMemoryMatch() {
+            createMemoryBoard();
+            document.getElementById('memory-match-message').innerText = '';
+        }
+
+        createMemoryBoard();
+
+        // Hangman Game
+        const words = ['javascript', 'python', 'html', 'css', 'java', 'react', 'angular', 'node', 'express', 'mongodb'];
+        let hangmanWord = words[Math.floor(Math.random() * words.length)];
+        let hangmanGuesses = [];
+        let hangmanWrongGuesses = 0;
+        const maxWrongGuesses = 6;
+
+        function displayHangmanWord() {
+            const wordDisplay = hangmanWord.split('').map(letter => hangmanGuesses.includes(letter) ? letter : '_').join(' ');
+            document.getElementById('hangman-word').innerText = wordDisplay;
+        }
+
+        function checkHangmanGuess() {
+            const guess = document.getElementById('hangman-guess').value.toLowerCase();
+            document.getElementById('hangman-guess').value = '';
+
+            if (hangmanGuesses.includes(guess) || guess === '') return;
+
+            if (hangmanWord.includes(guess)) {
+                hangmanGuesses.push(guess);
+                displayHangmanWord();
+                if (!document.getElementById('hangman-word').innerText.includes('_')) {
+                    document.getElementById('hangman-message').innerText = 'You win!';
+                }
+            } else {
+                hangmanWrongGuesses++;
+                if (hangmanWrongGuesses >= maxWrongGuesses) {
+                    document.getElementById('hangman-message').innerText = `You lose! The word was: ${hangmanWord}`;
+                    hangmanWord = words[Math.floor(Math.random() * words.length)]; // Cycle to the next word
+                    hangmanGuesses = [];
+                    hangmanWrongGuesses = 0;
+                    displayHangmanWord();
+                } else {
+                    document.getElementById('hangman-message').innerText = `Wrong guess! You have ${maxWrongGuesses - hangmanWrongGuesses} attempts left.`;
+                }
+            }
+        }
+
+        displayHangmanWord();
+
+        // Math Quiz Game
+        let num1, num2, correctAnswer;
+
+        function generateMathQuestion() {
+            num1 = Math.floor(Math.random() * 100) + 1;
+            num2 = Math.floor(Math.random() * 100) + 1;
+            correctAnswer = num1 + num2;
+            document.getElementById('math-question').innerText = `What is ${num1} + ${num2}?`;
+        }
+
+        function checkMathAnswer() {
+            const answer = parseInt(document.getElementById('math-answer').value);
+            if (answer === correctAnswer) {
+                document.getElementById('math-quiz-message').innerText = 'Correct!';
+            } else {
+                document.getElementById('math-quiz-message').innerText = `Incorrect! The correct answer was ${correctAnswer}.`;
+            }
+            generateMathQuestion();
+        }
+
+        generateMathQuestion();
     </script>
 </body>
 </html>
