@@ -1,1 +1,27 @@
+import requests
+
+api_key = 'c3c72bb9ba66f444e4dba2607e9658ff'
+
+user_input = input("Enter city: ")
+
+# Construct the API request URL with user input and API key
+url = f"https://api.openweathermap.org/data/2.5/weather?q={user_input}&units=imperial&appid={api_key}"
+
+# Send GET request to OpenWeatherMap API
+response = requests.get(url)
+
+# Check if the city is found in the API's response
+if response.status_code == 404:
+    print("City not found. Please check the city name and try again.")
+else:
+    # Extract weather data from the JSON response
+    weather_data = response.json()
+    
+    # Extract necessary information from the JSON response
+    weather = weather_data['weather'][0]['main']
+    temperature = round(weather_data['main']['temp'])
+    
+    # Print the weather and temperature information
+    print(f"The weather in {user_input} is: {weather}")
+    print(f"The temperature in {user_input} is: {temperature}ºF")
 
